@@ -4,10 +4,10 @@
 // Returns a structured JSON hairstyle recommendation
 
 const VISION_MODELS = [
-  'google/gemini-2.0-flash-001',
-  'google/gemini-flash-1.5',
-  'qwen/qwen-2.5-vl-72b-instruct',
-  'meta-llama/llama-3.2-11b-vision-instruct',
+  'google/gemini-2.5-flash',
+  'qwen/qwen2.5-vl-72b-instruct',
+  'meta-llama/llama-4-maverick',
+  'google/gemini-2.5-flash-lite',
 ];
 
 const SYSTEM_PROMPT = `You are a senior trichologist and master barber with 20+ years of experience 

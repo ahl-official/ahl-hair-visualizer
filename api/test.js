@@ -10,7 +10,7 @@
 //   6. Does a minimal image generation call work? (end-to-end smoke test)
 
 const IMAGE_MODEL = 'google/gemini-3.1-flash-image-preview';
-const VISION_MODEL = 'google/gemini-2.0-flash-001';
+const VISION_MODEL = 'google/gemini-2.5-flash';
 const TEXT_MODEL = 'google/gemini-2.5-flash';
 
 // Tiny 1×1 white pixel PNG — used for image gen smoke test without needing a real photo
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'Hair Restoration Visualizer — Test',
+        'X-Title': 'Hair Restoration Visualizer - Test',
       },
       body: JSON.stringify({
         model: TEXT_MODEL,
@@ -143,7 +143,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'Hair Restoration Visualizer — Test',
+        'X-Title': 'Hair Restoration Visualizer - Test',
       },
       body: JSON.stringify({
         model: VISION_MODEL,
@@ -187,7 +187,7 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'Hair Restoration Visualizer — Test',
+        'X-Title': 'Hair Restoration Visualizer - Test',
       },
       body: JSON.stringify({
         model: IMAGE_MODEL,

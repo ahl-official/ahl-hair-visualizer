@@ -60,7 +60,7 @@ STRICT RULES:
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': site,
-        'X-Title': 'Hair Restoration Visualizer — Spec Lock',
+        'X-Title': 'Hair Restoration Visualizer - Spec Lock',
       },
       body: JSON.stringify({
         model: MODEL_TEXT,
