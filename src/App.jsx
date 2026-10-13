@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import logo from "./assets/logo.png";
+import MobileSyncModal from "./components/MobileSyncModal";
+import MobileCaptureView from "./components/MobileCaptureView";
 
 /* ─────────────────────────────────────────────────────────────
    GLOBAL STYLES
@@ -331,6 +333,7 @@ function CameraFlow({ onCaptures, onClose }) {
 const Upload = ({ images, onImage, uploadRef, onRun, running, patient, onPatientChange }) => {
   const mob = useIsMobile();
   const [camOpen, setCamOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
   const r1 = useReveal();
   const keys = ['front', 'back', 'side', 'top'];
   const filled = keys.filter(k => images[k]).length;
@@ -362,15 +365,27 @@ const Upload = ({ images, onImage, uploadRef, onRun, running, patient, onPatient
           </div>
         </div>
 
-        <button onClick={() => setCamOpen(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: mob ? '100%' : 'auto', fontFamily: 'var(--sans)', fontSize: '12px', fontWeight: 500, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--cobalt)', background: 'white', border: '1.5px solid var(--cobalt-pale)', padding: '12px 28px', marginBottom: '22px', borderRadius: '4px', transition: 'all .2s' }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cobalt)'; e.currentTarget.style.background = 'var(--sky)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cobalt-pale)'; e.currentTarget.style.background = 'white'; }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cobalt)" strokeWidth="1.8">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-            <circle cx="12" cy="13" r="4" />
-          </svg>
-          Use Camera — Capture All 4 Photos
-        </button>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '22px' }}>
+          <button onClick={() => setSyncOpen(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: mob ? '100%' : 'auto', fontFamily: 'var(--sans)', fontSize: '12px', fontWeight: 500, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--cobalt)', background: 'white', border: '1.5px solid var(--cobalt-pale)', padding: '12px 28px', borderRadius: '4px', transition: 'all .2s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cobalt)'; e.currentTarget.style.background = 'var(--sky)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cobalt-pale)'; e.currentTarget.style.background = 'white'; }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cobalt)" strokeWidth="1.8">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+              <line x1="12" y1="18" x2="12.01" y2="18" />
+            </svg>
+            Sync from Phone — QR Code
+          </button>
+
+          <button onClick={() => setCamOpen(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: mob ? '100%' : 'auto', fontFamily: 'var(--sans)', fontSize: '12px', fontWeight: 500, letterSpacing: '.16em', textTransform: 'uppercase', color: 'var(--ink3)', background: 'white', border: '1.5px solid var(--linen)', padding: '12px 24px', borderRadius: '4px', transition: 'all .2s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cobalt-pale)'; e.currentTarget.style.background = 'var(--cream)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--linen)'; e.currentTarget.style.background = 'white'; }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" strokeWidth="1.8">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            Laptop Camera
+          </button>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
           <div style={{ flex: 1, height: '1px', background: 'var(--linen)' }} />
@@ -398,6 +413,7 @@ const Upload = ({ images, onImage, uploadRef, onRun, running, patient, onPatient
         </div>
       </div>
       {camOpen && <CameraFlow onCaptures={handleCaptures} onClose={() => setCamOpen(false)} />}
+      {syncOpen && <MobileSyncModal images={images} onImage={onImage} onClose={() => setSyncOpen(false)} />}
     </section>
   );
 };
@@ -961,6 +977,19 @@ async function computeSimilarity(url1, url2, size = 32) {
    APP ROOT
 ───────────────────────────────────────────────────────────── */
 export default function App() {
+  const syncTarget = typeof window !== 'undefined'
+    ? (new URLSearchParams(window.location.search).get('sync') || (window.location.hash.startsWith('#sync=') ? window.location.hash.replace('#sync=', '') : null))
+    : null;
+
+  if (syncTarget) {
+    return (
+      <>
+        <Styles />
+        <MobileCaptureView targetPeerId={syncTarget} />
+      </>
+    );
+  }
+
   const [images, setImages] = useState({ front: null, back: null, side: null, top: null });
   const [phase, setPhase] = useState('idle');
   const [analysis, setAnalysis] = useState(null);
