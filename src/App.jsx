@@ -85,15 +85,56 @@ function useReveal() {
   return ref;
 }
 
+function usePWAInstall() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsInstalled(true);
+    }
+
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    });
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, []);
+
+  const triggerInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice?.outcome === 'accepted') {
+        setDeferredPrompt(null);
+      }
+    } else {
+      alert("To install on your TV or screen: Open your browser's menu (⋮ or Share) and select 'Install app' or 'Add to Home Screen'.");
+    }
+  };
+
+  return { isInstallable: !isInstalled && !!deferredPrompt, triggerInstall };
+}
+
 /* ─────────────────────────────────────────────────────────────
    LOGO FILTER (blue tint matching --cobalt)
-───────────────────────────────────────────────────────────── */
+ ───────────────────────────────────────────────────────────── */
 const LOGO_FILTER = 'brightness(0) saturate(100%) invert(30%) sepia(70%) saturate(500%) hue-rotate(195deg)';
 
 /* ─────────────────────────────────────────────────────────────
    NAV
-───────────────────────────────────────────────────────────── */
-const Nav = ({ onDownload, showDownload }) => {
+ ───────────────────────────────────────────────────────────── */
+const Nav = ({ onDownload, showDownload, onInstall, canInstall }) => {
   const mob = useIsMobile();
   return (
     <nav className="no-print" style={{
@@ -107,6 +148,25 @@ const Nav = ({ onDownload, showDownload }) => {
     }}>
       <img src={logo} alt="American Hairline" style={{ height: mob ? '22px' : '28px', objectFit: 'contain', filter: LOGO_FILTER }} />
       <div style={{ display: 'flex', gap: mob ? '10px' : '24px', alignItems: 'center' }}>
+        {canInstall && (
+          <button onClick={onInstall} style={{
+            fontFamily: 'var(--sans)', fontSize: '11px', fontWeight: 500,
+            letterSpacing: '.12em', textTransform: 'uppercase',
+            color: 'var(--cobalt)', background: 'var(--sky)',
+            border: '1.5px solid var(--cobalt-pale)',
+            padding: mob ? '6px 12px' : '7px 16px', borderRadius: '3px',
+            display: 'flex', alignItems: 'center', gap: '6px', transition: 'all .2s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--cobalt)'; e.currentTarget.style.background = 'white'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--cobalt-pale)'; e.currentTarget.style.background = 'var(--sky)'; }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            {mob ? 'Install' : 'Install TV App'}
+          </button>
+        )}
         {!mob && ['Upload', 'Results'].map(l => (
           <a key={l} href={`#${l.toLowerCase()}`}
             style={{ fontFamily: 'var(--sans)', fontSize: '12px', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink3)', textDecoration: 'none', transition: 'color .2s' }}
@@ -998,6 +1058,7 @@ export default function App() {
   const [patient, setPatient] = useState({ name: '', age: '', phone: '' });
   const [statusMsg, setStatusMsg] = useState('');
   const [simWarns, setSimWarns] = useState({});
+  const { isInstallable, triggerInstall } = usePWAInstall();
 
   const handlePatientChange = useCallback((key, val) => setPatient(p => ({ ...p, [key]: val })), []);
   const uploadRef = useRef(null);
@@ -1069,7 +1130,7 @@ export default function App() {
   return (
     <>
       <Styles />
-      <Nav onDownload={openReport} showDownload={phase === 'done'} />
+      <Nav onDownload={openReport} showDownload={phase === 'done'} onInstall={triggerInstall} canInstall={isInstallable} />
       <div style={{ height: '62px' }} className="no-print" />
 
       <Hero onBegin={() => scrollTo(uploadRef)} />
